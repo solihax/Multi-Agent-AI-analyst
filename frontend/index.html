@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -227,7 +227,7 @@
 <header>
   <p class="eyebrow">Capstone / Multi-Agent System</p>
   <h1>Multi-Agent AI Analyst</h1>
-  <p>Ask a question about the churn dataset. Routing, retrieval, and verification happen behind the scenes — the trail below each answer shows which agents ran.</p>
+  <p>Ask a question about the churn dataset. Routing, retrieval, and verification happen behind the scenes вЂ” the trail below each answer shows which agents ran.</p>
 </header>
 
 <div id="api-config">
@@ -246,7 +246,7 @@
   </form>
 </main>
 
-<footer>Backend: FastAPI on Render · Frontend: static page on Vercel</footer>
+<footer>Backend: FastAPI on Render В· Frontend: static page on Vercel</footer>
 
 <script>
   const thread = document.getElementById('thread');
@@ -255,8 +255,8 @@
   const button = document.getElementById('askButton');
   const apiUrlInput = document.getElementById('apiUrl');
 
-  // Remember the backend URL across visits so you don't retype it.
-  apiUrlInput.value = localStorage.getItem('analystApiUrl') || '';
+  const DEFAULT_BACKEND_URL = 'https://multi-agent-ai-analyst-08hy.onrender.com';
+  apiUrlInput.value = localStorage.getItem('analystApiUrl') || DEFAULT_BACKEND_URL;
   apiUrlInput.addEventListener('change', () => {
     localStorage.setItem('analystApiUrl', apiUrlInput.value.trim());
   });
@@ -278,7 +278,7 @@
     turn.className = 'turn';
     turn.innerHTML = `
       <div class="question"></div>
-      <div class="answer-block"><div class="thinking">Routing through agents…</div></div>
+      <div class="answer-block"><div class="thinking">Routing through agentsвЂ¦</div></div>
     `;
     turn.querySelector('.question').textContent = question;
     thread.appendChild(turn);
@@ -358,3 +358,4 @@
 
 </body>
 </html>
+
