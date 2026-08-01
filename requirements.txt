@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+langchain
+langgraph
+langchain-openai
+langchain-community
+langchain-text-splitters
+qdrant-client
+tavily-python
+pandas
+pydantic
+# Optional — only needed for the eval (F11) and tracing (F12) notebook cells,
+# not required for the API/graph itself:
+ragas
+langfuse

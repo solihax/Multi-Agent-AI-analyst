@@ -1,0 +1,14 @@
+# Optional: lets Render auto-configure the service if you use
+# "New > Blueprint" instead of manually filling in the dashboard fields.
+services:
+  - type: web
+    name: multi-agent-ai-analyst
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false

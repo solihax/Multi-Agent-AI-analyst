@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Multi-Agent AI Analyst</title>
+<style>
+  :root {
+    --ink: #10141c;
+    --panel: #191f2b;
+    --panel-2: #212938;
+    --line: #2a3244;
+    --text: #e7eaf0;
+    --text-dim: #8a93a6;
+    --amber: #e8a33d;
+    --teal: #4fb0a5;
+    --error: #e0654f;
+    --font-display: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  header .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin: 0 0 6px;
+  }
+
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+
+  main {
+    flex: 1;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  #thread {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+  }
+
+  .empty-state {
+    color: var(--text-dim);
+    font-size: 14px;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .turn { display: flex; flex-direction: column; gap: 10px; }
+
+  .question {
+    align-self: flex-end;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 10px 10px 2px 10px;
+    padding: 10px 14px;
+    max-width: 85%;
+    font-size: 14.5px;
+  }
+
+  .answer-block {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 2px 10px 10px 10px;
+    padding: 14px 16px;
+    max-width: 90%;
+  }
+
+  .answer-text { font-size: 14.5px; line-height: 1.55; white-space: pre-wrap; }
+
+  .trail {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .trail-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-right: 4px;
+  }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(79, 176, 165, 0.12);
+    color: var(--teal);
+    border: 1px solid rgba(79, 176, 165, 0.3);
+  }
+
+  .chip.forced { color: var(--amber); background: rgba(232, 163, 61, 0.12); border-color: rgba(232, 163, 61, 0.3); }
+  .chip.revise { color: var(--error); background: rgba(224, 101, 79, 0.12); border-color: rgba(224, 101, 79, 0.3); }
+
+  .error-block {
+    border: 1px solid rgba(224, 101, 79, 0.4);
+    background: rgba(224, 101, 79, 0.08);
+    color: var(--error);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+  }
+
+  .thinking { color: var(--text-dim); font-size: 13.5px; font-family: var(--font-mono); }
+
+  form {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 16px;
+  }
+
+  textarea {
+    flex: 1;
+    resize: none;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-family: var(--font-display);
+    font-size: 14.5px;
+    line-height: 1.4;
+    min-height: 46px;
+    max-height: 140px;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  button {
+    background: var(--amber);
+    color: #1a1206;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button:focus-visible, textarea:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 11.5px;
+    font-family: var(--font-mono);
+    padding: 14px;
+  }
+
+  #api-config {
+    max-width: 720px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  #api-config input {
+    width: 100%;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Capstone / Multi-Agent System</p>
+  <h1>Multi-Agent AI Analyst</h1>
+  <p>Ask a question about the churn dataset. Routing, retrieval, and verification happen behind the scenes — the trail below each answer shows which agents ran.</p>
+</header>
+
+<div id="api-config">
+  Backend URL
+  <input id="apiUrl" type="text" placeholder="https://your-service.onrender.com" />
+</div>
+
+<main>
+  <div id="thread">
+    <div class="empty-state">No questions yet. Try: "How many customers have churned, and why?"</div>
+  </div>
+
+  <form id="askForm">
+    <textarea id="questionInput" placeholder="Ask about churn, contracts, payment methods..." rows="1"></textarea>
+    <button type="submit" id="askButton">Ask</button>
+  </form>
+</main>
+
+<footer>Backend: FastAPI on Render · Frontend: static page on Vercel</footer>
+
+<script>
+  const thread = document.getElementById('thread');
+  const form = document.getElementById('askForm');
+  const input = document.getElementById('questionInput');
+  const button = document.getElementById('askButton');
+  const apiUrlInput = document.getElementById('apiUrl');
+
+  // Remember the backend URL across visits so you don't retype it.
+  apiUrlInput.value = localStorage.getItem('analystApiUrl') || '';
+  apiUrlInput.addEventListener('change', () => {
+    localStorage.setItem('analystApiUrl', apiUrlInput.value.trim());
+  });
+
+  function clearEmptyState() {
+    const empty = thread.querySelector('.empty-state');
+    if (empty) empty.remove();
+  }
+
+  function chipClass(step) {
+    if (step.includes('forced')) return 'chip forced';
+    if (step.includes('revise')) return 'chip revise';
+    return 'chip';
+  }
+
+  function renderTurn(question) {
+    clearEmptyState();
+    const turn = document.createElement('div');
+    turn.className = 'turn';
+    turn.innerHTML = `
+      <div class="question"></div>
+      <div class="answer-block"><div class="thinking">Routing through agents…</div></div>
+    `;
+    turn.querySelector('.question').textContent = question;
+    thread.appendChild(turn);
+    thread.scrollTop = thread.scrollHeight;
+    return turn;
+  }
+
+  function renderAnswer(turn, answer, steps) {
+    const block = turn.querySelector('.answer-block');
+    const trailChips = steps.map(s => `<span class="${chipClass(s)}">${s}</span>`).join('');
+    block.innerHTML = `
+      <div class="answer-text"></div>
+      <div class="trail"><span class="trail-label">Agent trail</span>${trailChips}</div>
+    `;
+    block.querySelector('.answer-text').textContent = answer;
+  }
+
+  function renderError(turn, message) {
+    const block = turn.querySelector('.answer-block');
+    block.innerHTML = `<div class="error-block"></div>`;
+    block.querySelector('.error-block').textContent = message;
+  }
+
+  async function ask(question) {
+    const base = apiUrlInput.value.trim().replace(/\/$/, '');
+    if (!base) {
+      alert('Enter your Render backend URL above first.');
+      return;
+    }
+
+    const turn = renderTurn(question);
+    button.disabled = true;
+
+    try {
+      const res = await fetch(`${base}/ask`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
+      });
+
+      if (!res.ok) {
+        const detail = await res.text();
+        throw new Error(`Server error (${res.status}): ${detail}`);
+      }
+
+      const data = await res.json();
+      renderAnswer(turn, data.answer, data.steps || []);
+    } catch (err) {
+      renderError(turn, `Couldn't reach the analyst: ${err.message}`);
+    } finally {
+      button.disabled = false;
+      thread.scrollTop = thread.scrollHeight;
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q) return;
+    input.value = '';
+    input.style.height = 'auto';
+    ask(q);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  });
+</script>
+
+</body>
+</html>
